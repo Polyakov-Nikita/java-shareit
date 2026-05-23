@@ -67,7 +67,7 @@ public class MemoryItemRepository implements ItemRepository {
 
     @Override
     public List<Item> search(String text) {
-        if(text.isEmpty()) {
+        if (text.isEmpty()) {
             return List.of();
         }
         String textNormalized = text.toLowerCase();
