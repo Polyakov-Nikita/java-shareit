@@ -82,6 +82,10 @@ public class ControllerTest {
         expect(actions, MockMvcResultMatchers.status().isNoContent());
     }
 
+    protected void expectStatusForbidden(ResultActions actions) {
+        expect(actions, MockMvcResultMatchers.status().isForbidden());
+    }
+
     protected void expectJSONBody(ResultActions actions, Object expectedBody) {
         try {
             expect(actions, MockMvcResultMatchers.content().json(mapper.writeValueAsString(expectedBody)));

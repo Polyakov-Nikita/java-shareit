@@ -1,41 +1,37 @@
 package ru.practicum.shareit.user.dal;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.User;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Repository
 public class MemoryUserRepository implements UserRepository {
-    private final List<User> users = new ArrayList<>();
+    private final Map<Long, User> users = new HashMap<>();
 
     private long currentId = 0;
 
     @Override
     public User save(User user) {
         user.setId(currentId);
-        users.add(user);
+        users.put(currentId, user);
         currentId++;
         return user;
     }
 
     @Override
     public boolean containsEmail(String email) {
-        return users.stream()
+        return users.values().stream()
                 .anyMatch(user -> user.getEmail().equals(email));
     }
 
     @Override
     public User update(long id, User update) {
-        return users.stream()
-                .filter(user -> user.getId() == id)
-                .findAny()
-                .map(toUpdate -> {
-                    updateData(toUpdate, update);
-                    return toUpdate;
-                })
-                .orElse(null);
+        User toUpdate = users.get(id);
+        updateData(toUpdate, update);
+        return toUpdate;
     }
 
     private void updateData(User user, User update) {
@@ -49,20 +45,23 @@ public class MemoryUserRepository implements UserRepository {
 
     @Override
     public User get(long id) {
-        return users.stream()
-                .filter(user -> user.getId() == id)
-                .findAny()
-                .orElse(null);
+        checkId(id);
+        return users.get(id);
+    }
+
+    private void checkId(long id) {
+        if (isAbsentId(id)) {
+            throw new NotFoundException(User.OBJECT_TYPE, id);
+        }
     }
 
     @Override
     public boolean isAbsentId(long id) {
-        return users.stream()
-                .noneMatch(user -> user.getId() == id);
+        return !users.containsKey(id);
     }
 
     @Override
     public void delete(long id) {
-        users.removeIf(user -> user.getId() == id);
+        users.remove(id);
     }
 }

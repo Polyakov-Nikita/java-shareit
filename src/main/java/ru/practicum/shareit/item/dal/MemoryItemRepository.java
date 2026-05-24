@@ -2,34 +2,31 @@ package ru.practicum.shareit.item.dal;
 
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.User;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class MemoryItemRepository implements ItemRepository {
-    private final List<Item> items = new ArrayList<>();
+    private final Map<Long, Item> items = new HashMap<>();
 
     private long currentId = 0;
 
     @Override
     public Item save(Item item) {
         item.setId(currentId);
-        items.add(item);
+        items.put(currentId, item);
         currentId++;
         return item;
     }
 
     @Override
     public Item update(long id, Item update) {
-        return items.stream()
-                .filter(user -> user.getId() == id)
-                .findAny()
-                .map(toUpdate -> {
-                    updateData(toUpdate, update);
-                    return toUpdate;
-                })
-                .orElse(null);
+        Item toUpdate = items.get(id);
+        updateData(toUpdate, update);
+        return toUpdate;
     }
 
     private void updateData(Item item, Item update) {
@@ -39,42 +36,43 @@ public class MemoryItemRepository implements ItemRepository {
         if (update.getDescription() != null) {
             item.setDescription(update.getDescription());
         }
-        if (update.getItemStatus() != null) {
-            item.setItemStatus(update.getItemStatus());
-        }
+        item.setAvailable(update.isAvailable());
     }
 
     @Override
     public Item get(long id) {
-        return items.stream()
-                .filter(item -> item.getId() == id)
-                .findAny()
-                .orElse(null);
+        return items.get(id);
     }
 
     @Override
     public boolean isAbsentId(long id) {
-        return items.stream()
-                .noneMatch(item -> item.getId() == id);
+        return !items.containsKey(id);
     }
 
     @Override
     public List<Item> getAll(long sharerId) {
-        return items.stream()
+        return items.values().stream()
                 .filter(item -> item.getOwner().getId() == sharerId)
                 .toList();
     }
 
     @Override
     public List<Item> search(String text) {
-        if (text.isEmpty()) {
-            return List.of();
-        }
-        String textNormalized = text.toLowerCase();
-        return items.stream()
-                .filter(item -> item.getItemStatus() == Item.ItemStatus.AVAILABLE &&
-                        (item.getName().toLowerCase().contains(textNormalized) ||
-                                item.getDescription().toLowerCase().contains(textNormalized)))
+        return items.values().stream()
+                .filter(item -> item.isAvailable() &&
+                        (item.getName().toLowerCase().contains(text) ||
+                                item.getDescription().toLowerCase().contains(text)))
                 .toList();
+    }
+
+    @Override
+    public boolean isNotSharer(long userId, long itemId) {
+        if(items.containsKey(itemId)) {
+            User itemOwner = items.get(itemId).getOwner();
+            if(itemOwner != null) {
+                return userId != itemOwner.getId();
+            }
+        }
+        return true;
     }
 }

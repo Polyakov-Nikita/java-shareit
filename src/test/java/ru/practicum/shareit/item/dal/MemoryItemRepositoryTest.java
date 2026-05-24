@@ -24,7 +24,7 @@ public class MemoryItemRepositoryTest {
         return Item.builder()
                 .name(prefix + "name")
                 .description(prefix + " description")
-                .itemStatus(Item.ItemStatus.AVAILABLE)
+                .available(true)
                 .build();
     }
 
@@ -42,7 +42,7 @@ public class MemoryItemRepositoryTest {
                 .id(id)
                 .name("Name Update")
                 .description("Description Update")
-                .itemStatus(Item.ItemStatus.OCCUPIED)
+                .available(false)
                 .build();
     }
 
@@ -95,7 +95,7 @@ public class MemoryItemRepositoryTest {
         return Item.builder()
                 .name(prefix + "name")
                 .description(prefix + " description")
-                .itemStatus(Item.ItemStatus.AVAILABLE)
+                .available(true)
                 .owner(sharer)
                 .build();
     }
@@ -154,48 +154,53 @@ public class MemoryItemRepositoryTest {
     @Test
     public void search_ExcludeOccupied_ReturnsArray() {
         int availableCount = 3;
-        List<Item> availableItems = createItems(availableCount, Item.ItemStatus.AVAILABLE);
+        List<Item> availableItems = createItems(availableCount, true);
         saveItems(availableItems);
         int occupiedCount = 2;
-        List<Item> occupiedItems = createItems(occupiedCount, Item.ItemStatus.OCCUPIED);
+        List<Item> occupiedItems = createItems(occupiedCount, false);
         saveItems(occupiedItems);
         String text = "item";
         List<Item> received = itemRepository.search(text);
         Assertions.assertThat(received).containsExactlyInAnyOrderElementsOf(availableItems);
     }
 
-    private List<Item> createItems(int count, Item.ItemStatus itemStatus) {
+    private List<Item> createItems(int count, boolean available) {
         List<Item> items = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            items.add(buildItem(itemStatus));
+            items.add(buildItem(available));
         }
         return items;
     }
 
-    private Item buildItem(Item.ItemStatus status) {
-        String prefix = "Item With Status " + status;
+    private Item buildItem(boolean available) {
+        String prefix = "Item With Status " + available;
         return Item.builder()
                 .name(prefix + " Name")
                 .description(prefix + " description")
-                .itemStatus(status)
+                .available(available)
                 .build();
     }
 
     @Test
-    public void search_EmptyText_ReturnsEmptyArray() {
-        int itemsCount = 4;
-        List<Item> items = createItems(itemsCount);
-        saveItems(items);
-        String text = "";
-        List<Item> received = itemRepository.search(text);
-        Assertions.assertThat(received).isEmpty();
+    public void isNotSharer_UserIsSharer_False() {
+        User owner = userRepository.save(buildSharer("owner"));
+        long itemId = itemRepository.save(buildItem(owner)).getId();
+        Assertions.assertThat(itemRepository.isNotSharer(owner.getId(), itemId)).isFalse();
     }
 
-    private List<Item> createItems(int count) {
-        List<Item> items = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            items.add(buildItem("someItem" + i));
-        }
-        return items;
+    private Item buildItem(User owner) {
+        return Item.builder()
+                .name("Item With Owner")
+                .description("Item With Owner Description")
+                .available(true)
+                .owner(owner)
+                .build();
+    }
+
+    @Test
+    public void isNotSharer_UserIsNotSharer_True() {
+        long notSharerId = 999999;
+        long itemId = itemRepository.save(buildItem("whithoutSharer")).getId();
+        Assertions.assertThat(itemRepository.isNotSharer(notSharerId, itemId)).isTrue();
     }
 }

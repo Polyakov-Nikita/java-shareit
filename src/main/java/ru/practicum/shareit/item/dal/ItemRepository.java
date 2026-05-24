@@ -16,4 +16,6 @@ public interface ItemRepository {
     List<Item> getAll(long sharerId);
 
     List<Item> search(String text);
+
+    boolean isNotSharer(long userId, long itemId);
 }

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CreateItemRequest;
 import ru.practicum.shareit.item.dto.ItemResponse;
@@ -30,9 +31,12 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
+    @Validated({UpdateItemRequest.NameUpdate.class,
+            UpdateItemRequest.DescriptionUpdate.class,
+            UpdateItemRequest.AvailableUpdate.class})
     public ResponseEntity<ItemResponse> updateItem(@RequestHeader(HEADER_SHARER) long sharerId,
                                                    @PathVariable long itemId,
-                                                   @RequestBody @Valid UpdateItemRequest request) {
+                                                   @RequestBody UpdateItemRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(itemService.updateItem(itemId, sharerId, request));
     }
 

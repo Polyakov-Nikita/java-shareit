@@ -10,8 +10,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.ControllerTest;
-import ru.practicum.shareit.exeption.NotFoundException;
-import ru.practicum.shareit.exeption.handler.ErrorHandler;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.NotSharerException;
+import ru.practicum.shareit.exception.handler.ErrorHandler;
 import ru.practicum.shareit.item.dto.CreateItemRequest;
 import ru.practicum.shareit.item.dto.ItemResponse;
 import ru.practicum.shareit.item.dto.UpdateItemRequest;
@@ -203,6 +204,18 @@ public class ItemControllerTest extends ControllerTest {
         return UpdateItemRequest.builder()
                 .available(false)
                 .build();
+    }
+
+    @Test
+    public void update_UserIsNotSharer_StatusForbidden() {
+        long absentId = 5;
+        Mockito.doThrow(new NotSharerException(1, 1))
+                .when(itemService)
+                .updateItem(Mockito.any(long.class),
+                        Mockito.any(long.class),
+                        Mockito.any(UpdateItemRequest.class));
+        ResultActions result = performItemPatch(absentId, buildUpdateItem("notSharer"));
+        expectStatusForbidden(result);
     }
 
     @Test

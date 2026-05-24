@@ -10,7 +10,7 @@ public class ItemMapper {
         return Item.builder()
                 .name(request.getName())
                 .description(request.getDescription())
-                .itemStatus(mapStatus(request.getAvailable()))
+                .available(request.getAvailable())
                 .owner(owner)
                 .build();
     }
@@ -20,7 +20,7 @@ public class ItemMapper {
             return Item.builder()
                     .name(request.getName())
                     .description(request.getDescription())
-                    .itemStatus(mapStatus(request.getAvailable()))
+                    .available(request.getAvailable())
                     .owner(owner)
                     .build();
         }
@@ -31,19 +31,12 @@ public class ItemMapper {
                 .build();
     }
 
-    private Item.ItemStatus mapStatus(boolean available) {
-        if (available) {
-            return Item.ItemStatus.AVAILABLE;
-        }
-        return Item.ItemStatus.OCCUPIED;
-    }
-
     public ItemResponse toItemResponse(Item item) {
         return ItemResponse.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
-                .available(item.getItemStatus() == Item.ItemStatus.AVAILABLE)
+                .available(item.isAvailable())
                 .build();
     }
 }

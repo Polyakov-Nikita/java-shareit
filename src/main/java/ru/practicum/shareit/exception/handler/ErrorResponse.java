@@ -1,4 +1,4 @@
-package ru.practicum.shareit.exeption.handler;
+package ru.practicum.shareit.exception.handler;
 
 public record ErrorResponse(String message, String details) {
 }

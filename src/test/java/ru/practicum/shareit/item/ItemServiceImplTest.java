@@ -7,7 +7,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import ru.practicum.shareit.exeption.NotFoundException;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.NotSharerException;
 import ru.practicum.shareit.item.dal.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.user.dal.UserRepository;
@@ -35,15 +36,6 @@ public class ItemServiceImplTest {
     }
 
     @Test
-    public void createItem_AbsentSharer_NotFoundException() {
-        Mockito.doReturn(true)
-                .when(userRepository)
-                .isAbsentId(Mockito.any(long.class));
-        Assertions.assertThatThrownBy(() -> itemService.createItem(1, null))
-                .isInstanceOf(NotFoundException.class);
-    }
-
-    @Test
     public void updateItem_ExistingItem_ExistingSharer_NoExceptions() {
         Assertions.assertThatCode(() -> itemService.updateItem(1, 1, null))
                 .doesNotThrowAnyException();
@@ -59,12 +51,13 @@ public class ItemServiceImplTest {
     }
 
     @Test
-    public void updateItem_AbsentSharer_NotFoundException() {
+    public void updateItem_UserIsNotSharer_NotSharerException() {
         Mockito.doReturn(true)
-                .when(userRepository)
-                .isAbsentId(Mockito.any(long.class));
+                .when(itemRepository)
+                .isNotSharer(Mockito.any(long.class),
+                        Mockito.any(long.class));
         Assertions.assertThatThrownBy(() -> itemService.updateItem(1, 1, null))
-                .isInstanceOf(NotFoundException.class);
+                .isInstanceOf(NotSharerException.class);
     }
 
     @Test
@@ -95,5 +88,11 @@ public class ItemServiceImplTest {
                 .isAbsentId(Mockito.any(long.class));
         Assertions.assertThatThrownBy(() -> itemService.getAllItems(1))
                 .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    public void searchItems_EmptyText_ReturnsEmptyArray() {
+        Assertions.assertThat(itemService.searchItems(""))
+                .isEmpty();
     }
 }

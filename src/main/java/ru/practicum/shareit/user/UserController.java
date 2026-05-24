@@ -4,8 +4,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.user.dto.*;
+import ru.practicum.shareit.user.dto.CreateUserRequest;
+import ru.practicum.shareit.user.dto.UpdateUserRequest;
+import ru.practicum.shareit.user.dto.UserResponse;
 
 @RestController
 @RequestMapping(UserController.URL_BASE)
@@ -22,8 +25,10 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
+    @Validated({UpdateUserRequest.NameUpdate.class,
+            UpdateUserRequest.EmailUpdate.class})
     public ResponseEntity<UserResponse> updateUser(@PathVariable long userId,
-                                                   @RequestBody @Valid UpdateUserRequest request) {
+                                                   @RequestBody UpdateUserRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.updateUser(userId, request));
     }
 

@@ -2,8 +2,8 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exeption.DuplicatedDataException;
-import ru.practicum.shareit.exeption.NotFoundException;
+import ru.practicum.shareit.exception.DuplicatedDataException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dal.UserRepository;
 import ru.practicum.shareit.user.dto.CreateUserRequest;
 import ru.practicum.shareit.user.dto.UpdateUserRequest;
@@ -12,7 +12,6 @@ import ru.practicum.shareit.user.dto.UserResponse;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class UserServiceImpl implements UserService {
     private final UserMapper mapper;
     private final UserRepository userRepository;
@@ -49,7 +48,7 @@ public class UserServiceImpl implements UserService {
 
     private void checkUpdateUserRequest(UpdateUserRequest request) {
         String requestEmail = request.getEmail();
-        if (userRepository.containsEmail(requestEmail)) {
+        if (requestEmail != null && userRepository.containsEmail(requestEmail)) {
             throw new DuplicatedDataException(User.OBJECT_TYPE, "email", requestEmail);
         }
     }

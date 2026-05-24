@@ -13,13 +13,7 @@ public class Item {
     private long id;
     private String name;
     private String description;
-
-    public enum ItemStatus {
-        AVAILABLE,
-        OCCUPIED
-    }
-
-    private ItemStatus itemStatus;
+    private boolean available;
     private User owner;
     private ItemRequest request;
 }

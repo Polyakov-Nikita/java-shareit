@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.dal;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.User;
 
 public class MemoryUserRepositoryTest {
@@ -60,6 +61,13 @@ public class MemoryUserRepositoryTest {
     }
 
     @Test
+    public void get_AbsentUser_NotFoundException() {
+        long absentId = 9999;
+        Assertions.assertThatThrownBy(() -> REPOSITORY.get(absentId))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
     public void isAbsentId_ExistingId_False() {
         long existingId = REPOSITORY.save(buildUser("existingIdHolder")).getId();
         Assertions.assertThat(REPOSITORY.isAbsentId(existingId)).isFalse();
@@ -75,7 +83,7 @@ public class MemoryUserRepositoryTest {
     public void delete_NoObject() {
         long savedId = REPOSITORY.save(buildUser("toDelete")).getId();
         REPOSITORY.delete(savedId);
-        User received = REPOSITORY.get(savedId);
-        Assertions.assertThat(received).isNull();
+        Assertions.assertThatThrownBy(() -> REPOSITORY.get(savedId))
+                .isInstanceOf(NotFoundException.class);
     }
 }

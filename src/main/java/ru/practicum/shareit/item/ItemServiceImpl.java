@@ -2,7 +2,8 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exeption.NotFoundException;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.NotSharerException;
 import ru.practicum.shareit.item.dal.ItemRepository;
 import ru.practicum.shareit.item.dto.CreateItemRequest;
 import ru.practicum.shareit.item.dto.ItemMapper;
@@ -16,7 +17,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class ItemServiceImpl implements ItemService {
     private final ItemMapper mapper;
     private final ItemRepository itemRepository;
@@ -24,7 +24,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemResponse createItem(long sharerId, CreateItemRequest request) {
-        checkSharerId(sharerId);
         User owner = userRepository.get(sharerId);
         Item item = mapper.toItem(owner, request);
         Item result = itemRepository.save(item);
@@ -40,11 +39,17 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemResponse updateItem(long id, long sharerId, UpdateItemRequest request) {
         checkItemId(id);
-        checkSharerId(sharerId);
+        checkSharerId(sharerId, id);
         User owner = userRepository.get(sharerId);
         Item itemUpdate = mapper.toItem(owner, request);
         Item result = itemRepository.update(id, itemUpdate);
         return mapper.toItemResponse(result);
+    }
+
+    private void checkSharerId(long id, long itemId) {
+        if (itemRepository.isNotSharer(id, itemId)) {
+            throw new NotSharerException(id, itemId);
+        }
     }
 
     private void checkItemId(long id) {
@@ -71,7 +76,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemResponse> searchItems(String text) {
-        List<Item> result = itemRepository.search(text);
+        if (text.isEmpty()) {
+            return List.of();
+        }
+        List<Item> result = itemRepository.search(text.toLowerCase());
         return result.stream()
                 .map(mapper::toItemResponse)
                 .toList();
