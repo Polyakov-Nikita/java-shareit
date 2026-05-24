@@ -67,9 +67,9 @@ public class MemoryItemRepository implements ItemRepository {
 
     @Override
     public boolean isNotSharer(long userId, long itemId) {
-        if(items.containsKey(itemId)) {
+        if (items.containsKey(itemId)) {
             User itemOwner = items.get(itemId).getOwner();
-            if(itemOwner != null) {
+            if (itemOwner != null) {
                 return userId != itemOwner.getId();
             }
         }
