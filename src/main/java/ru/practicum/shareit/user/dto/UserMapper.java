@@ -19,13 +19,13 @@ public class UserMapper {
     }
 
     private void updateName(User user, String name) {
-        if(name != null) {
+        if (name != null) {
             user.setName(name);
         }
     }
 
     private void updateEmail(User user, String email) {
-        if(email != null) {
+        if (email != null) {
             user.setEmail(email);
         }
     }

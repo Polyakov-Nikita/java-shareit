@@ -318,8 +318,8 @@ public class ItemServiceImplTest extends ServiceTest {
 
         // Assert
         Assertions.assertThat(actual).isEmpty();
-        Mockito.verify(itemRepository, Mockito.never()).
-                findAllByAvailableTrueAndNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(Mockito.eq(text), Mockito.eq(text));
+        Mockito.verify(itemRepository, Mockito.never())
+                .findAllByAvailableTrueAndNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(Mockito.eq(text), Mockito.eq(text));
     }
 
     private void whenCommentsOf(Item item, List<Comment> comments) {
