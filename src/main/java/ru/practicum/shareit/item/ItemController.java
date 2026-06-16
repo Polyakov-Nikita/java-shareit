@@ -6,9 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.CreateItemRequest;
-import ru.practicum.shareit.item.dto.ItemResponse;
-import ru.practicum.shareit.item.dto.UpdateItemRequest;
+import ru.practicum.shareit.item.dto.*;
 
 import java.util.List;
 
@@ -19,6 +17,7 @@ import java.util.List;
 public class ItemController {
     public static final String URL_BASE = "/items";
     public static final String URL_SEARCH = "/search";
+    public static final String URL_COMMENT = "/comment";
     public static final String PARAM_TEXT = "text";
     public static final String HEADER_SHARER = "X-Sharer-User-Id";
 
@@ -28,6 +27,13 @@ public class ItemController {
     public ResponseEntity<ItemResponse> createItem(@RequestHeader(HEADER_SHARER) long sharerId,
                                                    @RequestBody @Valid CreateItemRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(itemService.createItem(sharerId, request));
+    }
+
+    @PostMapping("/{itemId}" + URL_COMMENT)
+    public ResponseEntity<CommentResponse> createComment(@RequestHeader(HEADER_SHARER) long sharerId,
+                                                         @PathVariable long itemId,
+                                                         @RequestBody @Valid CreateCommentRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.createComment(sharerId, itemId, request));
     }
 
     @PatchMapping("/{itemId}")
@@ -41,13 +47,13 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ResponseEntity<ItemResponse> getItem(@RequestHeader(HEADER_SHARER) long sharerId,
-                                                @PathVariable long itemId) {
+    public ResponseEntity<GetItemResponse> getItem(@RequestHeader(HEADER_SHARER) long sharerId,
+                                                   @PathVariable long itemId) {
         return ResponseEntity.status(HttpStatus.OK).body(itemService.getItem(itemId, sharerId));
     }
 
     @GetMapping
-    public ResponseEntity<List<ItemResponse>> getAllItems(@RequestHeader(HEADER_SHARER) long sharerId) {
+    public ResponseEntity<List<GetItemResponse>> getAllItems(@RequestHeader(HEADER_SHARER) long sharerId) {
         return ResponseEntity.status(HttpStatus.OK).body(itemService.getAllItems(sharerId));
     }
 

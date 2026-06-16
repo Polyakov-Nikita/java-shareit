@@ -1,68 +1,61 @@
 package ru.practicum.shareit.user;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.ServiceBase;
 import ru.practicum.shareit.exception.DuplicatedDataException;
-import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dal.UserRepository;
+import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.dto.CreateUserRequest;
 import ru.practicum.shareit.user.dto.UpdateUserRequest;
-import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.dto.UserResponse;
 
 @Service
-@RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+@Transactional(readOnly = true)
+public class UserServiceImpl extends ServiceBase implements UserService {
     private final UserMapper mapper;
-    private final UserRepository userRepository;
+
+    public UserServiceImpl(UserRepository userRepository, ItemRepository itemRepository,
+                           UserMapper mapper) {
+        super(userRepository, itemRepository);
+        this.mapper = mapper;
+    }
 
     @Override
+    @Transactional
     public UserResponse createUser(CreateUserRequest request) {
-        checkCreateUserRequest(request);
         User user = mapper.toUser(request);
-        User result = userRepository.save(user);
+        User result = save(user);
         return mapper.toUserResponse(result);
     }
 
-    private void checkCreateUserRequest(CreateUserRequest request) {
-        String requestEmail = request.getEmail();
-        if (userRepository.containsEmail(requestEmail)) {
-            throw new DuplicatedDataException(User.OBJECT_TYPE, "email", requestEmail);
+    private User save(User user) {
+        try {
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicatedDataException("пользователь", "email", user.getEmail());
         }
     }
 
     @Override
+    @Transactional
     public UserResponse updateUser(long id, UpdateUserRequest request) {
-        checkUserId(id);
-        checkUpdateUserRequest(request);
-        User userUpdate = mapper.toUser(request);
-        User result = userRepository.update(id, userUpdate);
+        User user = findUser(id);
+        User userUpdate = mapper.toUser(user, request);
+        User result = save(userUpdate);
         return mapper.toUserResponse(result);
-    }
-
-    private void checkUserId(long id) {
-        if (userRepository.isAbsentId(id)) {
-            throw new NotFoundException(User.OBJECT_TYPE, id);
-        }
-    }
-
-    private void checkUpdateUserRequest(UpdateUserRequest request) {
-        String requestEmail = request.getEmail();
-        if (requestEmail != null && userRepository.containsEmail(requestEmail)) {
-            throw new DuplicatedDataException(User.OBJECT_TYPE, "email", requestEmail);
-        }
     }
 
     @Override
     public UserResponse getUser(long id) {
-        checkUserId(id);
-        User result = userRepository.get(id);
+        User result = findUser(id);
         return mapper.toUserResponse(result);
     }
 
     @Override
+    @Transactional
     public void deleteUser(long id) {
-        checkUserId(id);
-        userRepository.delete(id);
+        userRepository.deleteById(id);
     }
 }

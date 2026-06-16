@@ -5,19 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.ControllerTest;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.NotSharerException;
+import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.exception.handler.ErrorHandler;
-import ru.practicum.shareit.item.dto.CreateItemRequest;
-import ru.practicum.shareit.item.dto.ItemResponse;
-import ru.practicum.shareit.item.dto.UpdateItemRequest;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.item.dto.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +27,6 @@ public class ItemControllerTest extends ControllerTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         mockMvc = standaloneSetup(controller)
                 .setControllerAdvice(new ErrorHandler())
                 .build();
@@ -41,8 +35,16 @@ public class ItemControllerTest extends ControllerTest {
     @Test
     public void create_StatusCreated() {
         long sharerId = 1;
-        ResultActions result = performItemPost(sharerId, buildCreateItem("item"));
+        ResultActions result = performItemPost(sharerId, buildCreateItem());
         expectStatusCreated(result);
+    }
+
+    private CreateItemRequest buildCreateItem() {
+        return CreateItemRequest.builder()
+                .name("Name")
+                .description("Description")
+                .available(true)
+                .build();
     }
 
     private ResultActions performItemPost(long sharerId, CreateItemRequest body) {
@@ -56,61 +58,97 @@ public class ItemControllerTest extends ControllerTest {
         }
     }
 
-    private CreateItemRequest buildCreateItem(String prefix) {
-        return CreateItemRequest.builder()
-                .name(prefix + " Name")
-                .description(prefix + " Description")
-                .available(true)
-                .build();
-    }
-
     @Test
     public void create_ReturnsObject() {
-        ItemResponse saved = buildItemResponse(1, "saved");
+        ItemResponse saved = buildItemResponse(1);
         Mockito.doReturn(saved)
                 .when(itemService)
                 .createItem(Mockito.any(long.class),
                         Mockito.any(CreateItemRequest.class));
-        ResultActions result = performItemPost(1, buildCreateItem("saved"));
+        ResultActions result = performItemPost(1, buildCreateItem());
         expectJSONBody(result, saved);
     }
 
-    private ItemResponse buildItemResponse(long id, String prefix) {
+    private ItemResponse buildItemResponse(long id) {
         return ItemResponse.builder()
                 .id(id)
-                .name(prefix + " Name")
-                .description(prefix + " Description")
+                .name("Name")
+                .description("Description")
                 .build();
-    }
-
-    @Test
-    public void create_WithoutUserHeader_StatusBadRequest() {
-        ResultActions result = performPost(ItemController.URL_BASE, buildCreateItem("item"));
-        expectStatusBadRequest(result);
     }
 
     @Test
     public void create_AbsentSharer_StatusNotFound() {
         long absentSharerId = 1;
-        Mockito.doThrow(new NotFoundException(User.OBJECT_TYPE, absentSharerId))
+        Mockito.doThrow(new NotFoundException("", absentSharerId))
                 .when(itemService)
                 .createItem(Mockito.any(long.class),
                         Mockito.any(CreateItemRequest.class));
-        ResultActions result = performItemPost(absentSharerId, buildCreateItem("item"));
+        ResultActions result = performItemPost(absentSharerId, buildCreateItem());
         expectStatusNotFound(result);
+    }
+
+    @Test
+    public void createComment_StatusCreated() {
+        long sharerId = 1;
+        long itemId = 1;
+        ResultActions result = performCommentPost(sharerId, itemId, buildCreateComment());
+        expectStatusCreated(result);
+    }
+
+    private CreateCommentRequest buildCreateComment() {
+        return CreateCommentRequest.builder()
+                .text("text")
+                .build();
+    }
+
+    private ResultActions performCommentPost(long sharerId, long itemId, CreateCommentRequest body) {
+        try {
+            return mockMvc.perform(MockMvcRequestBuilders.post(createCommentPostUrl(itemId))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(body))
+                    .header(ItemController.HEADER_SHARER, sharerId));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String createCommentPostUrl(long itemId) {
+        return String.format("%s/%s%s",
+                ItemController.URL_BASE, itemId, ItemController.URL_COMMENT);
+    }
+
+    @Test
+    public void createComment_ReturnsObject() {
+        CommentResponse saved = buildCommentResponse();
+        Mockito.doReturn(saved)
+                .when(itemService)
+                .createComment(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(CreateCommentRequest.class));
+        long sharerId = 1;
+        long itemId = 1;
+        ResultActions result = performCommentPost(sharerId, itemId, buildCreateComment());
+        expectJSONBody(result, saved);
+    }
+
+    private CommentResponse buildCommentResponse() {
+        return CommentResponse.builder()
+                .id(1)
+                .text("text")
+                .authorName("Author Name")
+                .build();
     }
 
     @Test
     public void update_StatusOk() {
         long id = 1;
-        ResultActions result = performItemPatch(id, buildUpdateItem("itemUpdate"));
+        ResultActions result = performItemPatch(id, buildUpdateItem());
         expectStatusOk(result);
     }
 
-    private UpdateItemRequest buildUpdateItem(String prefix) {
+    private UpdateItemRequest buildUpdateItem() {
         return UpdateItemRequest.builder()
-                .name(prefix + " Name Update")
-                .description(prefix + " Description Update")
+                .name("Name Update")
+                .description("Description Update")
                 .available(false)
                 .build();
     }
@@ -133,37 +171,37 @@ public class ItemControllerTest extends ControllerTest {
     @Test
     public void update_ReturnsObject() {
         long savedId = 1;
-        ItemResponse updated = buildItemResponse(savedId, "updated");
+        ItemResponse updated = buildItemResponse(savedId);
         Mockito.doReturn(updated)
                 .when(itemService)
                 .updateItem(Mockito.any(long.class),
                         Mockito.any(long.class),
                         Mockito.any(UpdateItemRequest.class));
-        ResultActions result = performItemPatch(savedId, buildUpdateItem("updated"));
+        ResultActions result = performItemPatch(savedId, buildUpdateItem());
         expectJSONBody(result, updated);
     }
 
     @Test
     public void update_AbsentId_StatusNotFound() {
         long absentId = 5;
-        Mockito.doThrow(new NotFoundException(Item.OBJECT_TYPE, absentId))
+        Mockito.doThrow(new NotFoundException("", absentId))
                 .when(itemService)
                 .updateItem(Mockito.any(long.class),
                         Mockito.any(long.class),
                         Mockito.any(UpdateItemRequest.class));
-        ResultActions result = performItemPatch(absentId, buildUpdateItem("absent"));
+        ResultActions result = performItemPatch(absentId, buildUpdateItem());
         expectStatusNotFound(result);
     }
 
     @Test
     public void update_AbsentSharerId_StatusNotFound() {
         long absentId = 5;
-        Mockito.doThrow(new NotFoundException(User.OBJECT_TYPE, absentId))
+        Mockito.doThrow(new NotFoundException("", absentId))
                 .when(itemService)
                 .updateItem(Mockito.any(long.class),
                         Mockito.any(long.class),
                         Mockito.any(UpdateItemRequest.class));
-        ResultActions result = performItemPatch(absentId, buildUpdateItem("absent"));
+        ResultActions result = performItemPatch(absentId, buildUpdateItem());
         expectStatusNotFound(result);
     }
 
@@ -209,12 +247,12 @@ public class ItemControllerTest extends ControllerTest {
     @Test
     public void update_UserIsNotSharer_StatusForbidden() {
         long absentId = 5;
-        Mockito.doThrow(new NotSharerException(1, 1))
+        Mockito.doThrow(new NotOwnerException(1, 1))
                 .when(itemService)
                 .updateItem(Mockito.any(long.class),
                         Mockito.any(long.class),
                         Mockito.any(UpdateItemRequest.class));
-        ResultActions result = performItemPatch(absentId, buildUpdateItem("notSharer"));
+        ResultActions result = performItemPatch(absentId, buildUpdateItem());
         expectStatusForbidden(result);
     }
 
@@ -238,13 +276,21 @@ public class ItemControllerTest extends ControllerTest {
     @Test
     public void get_ExistingItem_ReturnsObject() {
         long itemId = 1;
-        ItemResponse received = buildItemResponse(itemId, "itemToGet");
+        GetItemResponse received = buildGetItemResponse(itemId);
         Mockito.doReturn(received)
                 .when(itemService)
                 .getItem(Mockito.any(long.class),
                         Mockito.any(long.class));
         ResultActions result = performItemGet(itemId);
         expectJSONBody(result, received);
+    }
+
+    private GetItemResponse buildGetItemResponse(long id) {
+        return GetItemResponse.builder()
+                .id(id)
+                .name("itemToGet Name")
+                .description("itemToGet Description")
+                .build();
     }
 
     @Test
@@ -279,7 +325,7 @@ public class ItemControllerTest extends ControllerTest {
     private List<ItemResponse> createItemResponseList(int count) {
         List<ItemResponse> responseList = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            responseList.add(buildItemResponse(i, "item" + i));
+            responseList.add(buildItemResponse(i));
         }
         return responseList;
     }

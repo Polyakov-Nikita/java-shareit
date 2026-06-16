@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user.dto;
+package ru.practicum.shareit.booking.dto;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -7,8 +7,6 @@ import lombok.ToString;
 @Builder
 @Getter
 @ToString
-public class UserResponse {
+public class Booker {
     private long id;
-    private String name;
-    private String email;
 }

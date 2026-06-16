@@ -7,9 +7,6 @@ import lombok.ToString;
 @Builder
 @Getter
 @ToString
-public class ItemResponse {
-    private long id;
-    private String name;
-    private String description;
-    private boolean available;
+public class ItemComment {
+    private String text;
 }

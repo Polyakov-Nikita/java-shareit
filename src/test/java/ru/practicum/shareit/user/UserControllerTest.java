@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.ResultActions;
 import ru.practicum.shareit.ControllerTest;
 import ru.practicum.shareit.exception.DuplicatedDataException;
@@ -26,7 +25,6 @@ public class UserControllerTest extends ControllerTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         mockMvc = standaloneSetup(controller)
                 .setControllerAdvice(new ErrorHandler())
                 .build();
@@ -130,7 +128,7 @@ public class UserControllerTest extends ControllerTest {
     @Test
     public void update_AbsentId_StatusNotFound() {
         long absentId = 5;
-        Mockito.doThrow(new NotFoundException(User.OBJECT_TYPE, absentId))
+        Mockito.doThrow(new NotFoundException("", absentId))
                 .when(userService)
                 .updateUser(Mockito.any(long.class),
                         Mockito.any(UpdateUserRequest.class));
@@ -166,7 +164,7 @@ public class UserControllerTest extends ControllerTest {
 
     @Test
     public void update_ExistingEmail_StatusConflict() {
-        Mockito.doThrow(new DuplicatedDataException(User.OBJECT_TYPE, "email", "sameEmail"))
+        Mockito.doThrow(new DuplicatedDataException("", "email", "sameEmail"))
                 .when(userService)
                 .updateUser(Mockito.any(long.class),
                         Mockito.any(UpdateUserRequest.class));
@@ -194,7 +192,7 @@ public class UserControllerTest extends ControllerTest {
     @Test
     public void get_AbsentUser_StatusNotFound() {
         long absentId = 5;
-        Mockito.doThrow(new NotFoundException(User.OBJECT_TYPE, absentId))
+        Mockito.doThrow(new NotFoundException("", absentId))
                 .when(userService)
                 .getUser(Mockito.any(long.class));
         ResultActions result = performGet(createUserIdUrl(absentId));
@@ -210,7 +208,7 @@ public class UserControllerTest extends ControllerTest {
     @Test
     public void delete_AbsentUser_StatusNotFound() {
         long absentId = 5;
-        Mockito.doThrow(new NotFoundException(User.OBJECT_TYPE, absentId))
+        Mockito.doThrow(new NotFoundException("", absentId))
                 .when(userService)
                 .deleteUser(Mockito.any(long.class));
         ResultActions result = performDelete(createUserIdUrl(absentId));

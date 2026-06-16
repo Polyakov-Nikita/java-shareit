@@ -4,12 +4,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
+
 @Builder
 @Getter
 @ToString
-public class ItemResponse {
+public class CommentResponse {
     private long id;
-    private String name;
-    private String description;
-    private boolean available;
+    private String text;
+    private String authorName;
+    private LocalDateTime created;
 }
