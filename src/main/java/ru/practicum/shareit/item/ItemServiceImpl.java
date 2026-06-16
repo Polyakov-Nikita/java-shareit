@@ -159,13 +159,13 @@ public class ItemServiceImpl extends ServiceBase implements ItemService {
 
     private Map<Long, List<Comment>> findComments(List<Long> itemIds) {
         List<Comment> allComments = commentRepository.findByItemIdIn(itemIds);
-        return allComments.stream().
-                collect(Collectors.groupingBy(comment -> comment.getItem().getId()));
+        return allComments.stream()
+                .collect(Collectors.groupingBy(comment -> comment.getItem().getId()));
     }
 
     private GetItemResponse compose(Item item, Booking lastBooking, Booking nextBooking, List<Comment> comments) {
         LocalDateTime lastBookingEnd = null;
-        if(lastBooking != null) {
+        if (lastBooking != null) {
             lastBookingEnd = lastBooking.getEnd();
         }
         LocalDateTime nextBookingStart = null;
