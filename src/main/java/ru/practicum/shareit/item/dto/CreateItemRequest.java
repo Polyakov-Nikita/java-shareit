@@ -3,10 +3,12 @@ package ru.practicum.shareit.item.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.ToString;
 
-@Data
 @Builder
+@Getter
+@ToString
 public class CreateItemRequest {
     @NotBlank(message = "Имя не может быть пустым")
     private String name;
