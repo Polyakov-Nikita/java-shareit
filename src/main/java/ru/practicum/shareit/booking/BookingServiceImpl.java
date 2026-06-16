@@ -3,7 +3,7 @@ package ru.practicum.shareit.booking;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.ServiceBase;
-import ru.practicum.shareit.booking.dto.BookingMapper;
+import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.dto.BookingResponse;
 import ru.practicum.shareit.booking.dto.CreateBookingRequest;
 import ru.practicum.shareit.exception.*;
@@ -111,12 +111,14 @@ public class BookingServiceImpl extends ServiceBase implements BookingService {
     private List<Booking> searchBookings(long sharerId, BookingSearchState state) {
         LocalDateTime now = LocalDateTime.now();
         return switch (state) {
-            case CURRENT -> bookingRepository.findByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(sharerId, now, now);
-            case PAST -> bookingRepository.findByBookerIdAndEndBeforeOrderByStartDesc(sharerId, now);
-            case FUTURE -> bookingRepository.findByBookerIdAndStartAfterOrderByStartDesc(sharerId, now);
-            case WAITING -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(sharerId, BookingStatus.WAITING);
-            case REJECTED -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(sharerId, BookingStatus.REJECTED);
-            default -> bookingRepository.findByBookerIdOrderByStartDesc(sharerId);
+            case ALL -> bookingRepository.findByBookerId(sharerId, SORT_DESC_START);
+            case CURRENT ->
+                    bookingRepository.findByBookerIdAndStartBeforeAndEndAfter(sharerId, now, now, SORT_DESC_START);
+            case PAST -> bookingRepository.findByBookerIdAndEndBefore(sharerId, now, SORT_DESC_START);
+            case FUTURE -> bookingRepository.findByBookerIdAndStartAfter(sharerId, now, SORT_DESC_START);
+            case WAITING -> bookingRepository.findByBookerIdAndStatus(sharerId, BookingStatus.WAITING, SORT_DESC_START);
+            case REJECTED ->
+                    bookingRepository.findByBookerIdAndStatus(sharerId, BookingStatus.REJECTED, SORT_DESC_START);
         };
     }
 
@@ -131,12 +133,12 @@ public class BookingServiceImpl extends ServiceBase implements BookingService {
 
     private List<Booking> searchItemBookings(long sharerId, BookingSearchState state) {
         return switch (state) {
+            case ALL -> bookingRepository.findItemBookingsByOwnerId(sharerId);
             case CURRENT -> bookingRepository.findCurrentItemBookingsByOwnerId(sharerId, LocalDateTime.now());
             case PAST -> bookingRepository.findPastItemBookingsByOwnerId(sharerId, LocalDateTime.now());
             case FUTURE -> bookingRepository.findFutureItemBookingsByOwnerId(sharerId, LocalDateTime.now());
             case WAITING -> bookingRepository.findItemBookingsByOwnerIdAndStatus(sharerId, BookingStatus.WAITING);
             case REJECTED -> bookingRepository.findItemBookingsByOwnerIdAndStatus(sharerId, BookingStatus.REJECTED);
-            default -> bookingRepository.findItemBookingsByOwnerId(sharerId);
         };
     }
 }

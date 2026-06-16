@@ -9,7 +9,6 @@ import ru.practicum.shareit.user.User;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@ToString
 @Entity
 @Table(name = "items", schema = "public")
 public class Item {

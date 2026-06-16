@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@ToString
 @Entity
 @Table(name = "bookings", schema = "public")
 public class Booking {

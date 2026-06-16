@@ -5,8 +5,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.ServiceTest;
 import ru.practicum.shareit.booking.dto.*;
+import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.exception.*;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.user.User;
@@ -395,36 +397,49 @@ public class BookingServiceImplTest extends ServiceTest {
     }
 
     private void whenAllBookingsOf(User booker, List<Booking> bookings) {
-        Mockito.when(bookingRepository.findByBookerIdOrderByStartDesc(Mockito.eq(booker.getId())))
+        Mockito.when(bookingRepository.findByBookerId(Mockito.eq(booker.getId()), Mockito.any(Sort.class)))
                 .thenReturn(bookings);
     }
 
     private void whenCurrentBookingsOf(User booker, List<Booking> bookings) {
-        Mockito.when(bookingRepository.findByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(
+        Mockito.when(bookingRepository.findByBookerIdAndStartBeforeAndEndAfter(
                         Mockito.eq(booker.getId()),
                         Mockito.any(LocalDateTime.class),
-                        Mockito.any(LocalDateTime.class)
+                        Mockito.any(LocalDateTime.class),
+                        Mockito.any(Sort.class)
                 ))
                 .thenReturn(bookings);
     }
 
     private void whenPastBookingsOf(User booker, List<Booking> bookings) {
-        Mockito.when(bookingRepository.findByBookerIdAndEndBeforeOrderByStartDesc(Mockito.eq(booker.getId()), Mockito.any(LocalDateTime.class)))
+        Mockito.when(bookingRepository.findByBookerIdAndEndBefore(
+                        Mockito.eq(booker.getId()),
+                        Mockito.any(LocalDateTime.class),
+                        Mockito.any(Sort.class)))
                 .thenReturn(bookings);
     }
 
     private void whenFutureBookingsOf(User booker, List<Booking> bookings) {
-        Mockito.when(bookingRepository.findByBookerIdAndStartAfterOrderByStartDesc(Mockito.eq(booker.getId()), Mockito.any(LocalDateTime.class)))
+        Mockito.when(bookingRepository.findByBookerIdAndStartAfter(
+                        Mockito.eq(booker.getId()),
+                        Mockito.any(LocalDateTime.class),
+                        Mockito.any(Sort.class)))
                 .thenReturn(bookings);
     }
 
     private void whenWaitingBookingsOf(User booker, List<Booking> bookings) {
-        Mockito.when(bookingRepository.findByBookerIdAndStatusOrderByStartDesc(Mockito.eq(booker.getId()), Mockito.eq(BookingStatus.WAITING)))
+        Mockito.when(bookingRepository.findByBookerIdAndStatus(
+                        Mockito.eq(booker.getId()),
+                        Mockito.any(BookingStatus.class),
+                        Mockito.any(Sort.class)))
                 .thenReturn(bookings);
     }
 
     private void whenRejectedBookingsOf(User booker, List<Booking> bookings) {
-        Mockito.when(bookingRepository.findByBookerIdAndStatusOrderByStartDesc(Mockito.eq(booker.getId()), Mockito.eq(BookingStatus.REJECTED)))
+        Mockito.when(bookingRepository.findByBookerIdAndStatus(
+                        Mockito.eq(booker.getId()),
+                        Mockito.any(BookingStatus.class),
+                        Mockito.any(Sort.class)))
                 .thenReturn(bookings);
     }
 

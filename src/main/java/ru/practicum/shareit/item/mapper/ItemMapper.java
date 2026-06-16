@@ -1,8 +1,9 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.item.mapper;
 
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.Comment;
 import ru.practicum.shareit.item.Item;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.user.User;
 
 import java.time.LocalDateTime;
@@ -20,28 +21,19 @@ public class ItemMapper {
     }
 
     public Item toItem(Item item, UpdateItemRequest request) {
-        updateName(item, request.getName());
-        updateDescription(item, request.getDescription());
-        updateAvailable(item, request.getAvailable());
+        String nameUpdate = request.getName();
+        if (nameUpdate != null) {
+            item.setName(nameUpdate);
+        }
+        String descriptionUpdate = request.getDescription();
+        if (descriptionUpdate != null) {
+            item.setDescription(descriptionUpdate);
+        }
+        Boolean availableUpdate = request.getAvailable();
+        if (availableUpdate != null) {
+            item.setAvailable(availableUpdate);
+        }
         return item;
-    }
-
-    private void updateName(Item item, String name) {
-        if (name != null) {
-            item.setName(name);
-        }
-    }
-
-    private void updateDescription(Item item, String description) {
-        if (description != null) {
-            item.setDescription(description);
-        }
-    }
-
-    private void updateAvailable(Item item, Boolean available) {
-        if (available != null) {
-            item.setAvailable(available);
-        }
     }
 
     public ItemResponse toItemResponse(Item item) {

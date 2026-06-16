@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -7,15 +8,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    List<Booking> findByBookerIdOrderByStartDesc(long bookerId);
+    List<Booking> findByBookerId(long bookerId, Sort sort);
 
-    List<Booking> findByBookerIdAndStatusOrderByStartDesc(long bookerId, BookingStatus status);
+    List<Booking> findByBookerIdAndStatus(long bookerId, BookingStatus status, Sort sort);
 
-    List<Booking> findByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(long bookerId, LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<Booking> findByBookerIdAndStartBeforeAndEndAfter(long bookerId, LocalDateTime startDateTime, LocalDateTime endDateTime, Sort sort);
 
-    List<Booking> findByBookerIdAndEndBeforeOrderByStartDesc(long bookerId, LocalDateTime dateTime);
+    List<Booking> findByBookerIdAndEndBefore(long bookerId, LocalDateTime dateTime, Sort sort);
 
-    List<Booking> findByBookerIdAndStartAfterOrderByStartDesc(long bookerId, LocalDateTime dateTime);
+    List<Booking> findByBookerIdAndStartAfter(long bookerId, LocalDateTime dateTime, Sort sort);
 
     @Query("select b from Booking b " +
             "join b.item i " +
@@ -51,9 +52,21 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "order by b.start desc")
     List<Booking> findFutureItemBookingsByOwnerId(long bookerId, LocalDateTime dateTime);
 
-    Booking findFirstByItemIdAndEndBeforeOrderByEndDesc(long itemId, LocalDateTime dateTime);
+    Booking findFirstByItemIdAndEndBefore(long itemId, LocalDateTime dateTime, Sort sort);
 
-    Booking findFirstByItemIdAndStartAfterOrderByStartAsc(long itemId, LocalDateTime dateTime);
+    @Query("select b from Booking b " +
+            "where b.item.id in ?1 " +
+            "and b.end < ?2 " +
+            "order by b.end desc")
+    List<Booking> findLastBookingsForItems(List<Long> itemIds, LocalDateTime dateTime);
+
+    Booking findFirstByItemIdAndStartAfter(long itemId, LocalDateTime dateTime, Sort sort);
+
+    @Query("select b from Booking b " +
+            "where b.item.id in ?1 " +
+            "and b.start > ?2 " +
+            "order by b.start asc")
+    List<Booking> findNextBookingsForItems(List<Long> itemIds, LocalDateTime dateTime);
 
     boolean existsByBookerIdAndItemIdAndEndIsBefore(long bookerId, long itemId, LocalDateTime dateTime);
 }

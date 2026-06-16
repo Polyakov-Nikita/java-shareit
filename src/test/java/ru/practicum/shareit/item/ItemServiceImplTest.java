@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.ServiceTest;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
@@ -13,6 +14,8 @@ import ru.practicum.shareit.exception.ForbiddenCommentException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.mapper.CommentMapper;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.user.User;
 
 import java.time.LocalDateTime;
@@ -239,15 +242,14 @@ public class ItemServiceImplTest extends ServiceTest {
         List<Comment> comments2 = List.of(buildComment(ID + 1, item2, owner));
         Booking lastBooking1 = buildBooking(item1, owner, NOW.minusDays(2), NOW.minusDays(1));
         Booking nextBooking1 = buildBooking(item1, owner, NOW.plusDays(1), NOW.plusDays(2));
-        Booking lastBooking2 = null;
+        Booking lastBooking2 = buildBooking(item2, owner, NOW.minusDays(3), NOW.minusDays(4));
         Booking nextBooking2 = buildBooking(item2, owner, NOW.plusDays(3), NOW.plusDays(4));
         whenItemsFoundBy(owner, items);
-        whenCommentsOf(item1, comments1);
-        whenCommentsOf(item2, comments2);
-        whenLastBookingOf(item1, lastBooking1);
-        whenLastBookingOf(item2, lastBooking2);
-        whenNextBookingOf(item1, nextBooking1);
-        whenNextBookingOf(item2, nextBooking2);
+        List<Long> itemIds = List.of(itemId1, itemId2);
+        whenLastBookingsOf(itemIds, List.of(lastBooking1, lastBooking2));
+        whenNextBookingsOf(itemIds, List.of(nextBooking1, nextBooking2));
+        List<Comment> allComments = Stream.concat(comments1.stream(), comments2.stream()).toList();
+        whenCommentsOf(itemIds, allComments);
 
         // Act
         Comparator<GetItemResponse> idComparator = Comparator.comparing(GetItemResponse::getId);
@@ -328,13 +330,38 @@ public class ItemServiceImplTest extends ServiceTest {
     }
 
     private void whenLastBookingOf(Item item, Booking booking) {
-        Mockito.when(bookingRepository.findFirstByItemIdAndEndBeforeOrderByEndDesc(Mockito.eq(item.getId()), Mockito.any()))
+        Mockito.when(bookingRepository.findFirstByItemIdAndEndBefore(
+                        Mockito.eq(item.getId()),
+                        Mockito.any(LocalDateTime.class),
+                        Mockito.any(Sort.class)))
                 .thenReturn(booking);
     }
 
     private void whenNextBookingOf(Item item, Booking booking) {
-        Mockito.when(bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(Mockito.eq(item.getId()), Mockito.any()))
+        Mockito.when(bookingRepository.findFirstByItemIdAndStartAfter(
+                        Mockito.eq(item.getId()),
+                        Mockito.any(LocalDateTime.class),
+                        Mockito.any(Sort.class)))
                 .thenReturn(booking);
+    }
+
+    private void whenLastBookingsOf(List<Long> itemIds, List<Booking> bookings) {
+        Mockito.when(bookingRepository.findLastBookingsForItems(
+                        Mockito.eq(itemIds),
+                        Mockito.any(LocalDateTime.class)))
+                .thenReturn(bookings);
+    }
+
+    private void whenNextBookingsOf(List<Long> itemIds, List<Booking> bookings) {
+        Mockito.when(bookingRepository.findNextBookingsForItems(
+                        Mockito.eq(itemIds),
+                        Mockito.any(LocalDateTime.class)))
+                .thenReturn(bookings);
+    }
+
+    private void whenCommentsOf(List<Long> itemIds, List<Comment> comments) {
+        Mockito.when(commentRepository.findByItemIdIn(Mockito.eq(itemIds)))
+                .thenReturn(comments);
     }
 
     private void whenBookingExists() {
