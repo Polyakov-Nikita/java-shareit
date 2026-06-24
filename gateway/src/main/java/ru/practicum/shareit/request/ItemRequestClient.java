@@ -7,12 +7,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import ru.practicum.shareit.client.Client;
+import ru.practicum.shareit.client.RestClient;
 import ru.practicum.shareit.request.dto.CreateItemRequestRequest;
 import ru.practicum.shareit.urlbuilder.UrlBuilder;
 
 @Service
-public class ItemRequestClient extends Client {
+public class ItemRequestClient extends RestClient {
     @Autowired
     public ItemRequestClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
         super(

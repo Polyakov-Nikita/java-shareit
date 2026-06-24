@@ -20,9 +20,9 @@ public class UserMapper {
         if (nameUpdate != null) {
             user.setName(nameUpdate);
         }
-        String descriptionUpdate = request.getEmail();
-        if (descriptionUpdate != null) {
-            user.setEmail(descriptionUpdate);
+        String emailUpdate = request.getEmail();
+        if (emailUpdate != null) {
+            user.setEmail(emailUpdate);
         }
         return user;
     }

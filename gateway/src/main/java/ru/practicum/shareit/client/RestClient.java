@@ -9,10 +9,10 @@ import ru.practicum.shareit.ShareItGateway;
 import java.util.List;
 import java.util.Map;
 
-public class Client {
+public class RestClient {
     protected final RestTemplate rest;
 
-    public Client(RestTemplate rest) {
+    public RestClient(RestTemplate rest) {
         this.rest = rest;
     }
 

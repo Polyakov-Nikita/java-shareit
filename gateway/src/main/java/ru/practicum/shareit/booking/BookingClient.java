@@ -8,11 +8,11 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.CreateBookingRequest;
-import ru.practicum.shareit.client.Client;
+import ru.practicum.shareit.client.RestClient;
 import ru.practicum.shareit.urlbuilder.UrlBuilder;
 
 @Service
-public class BookingClient extends Client {
+public class BookingClient extends RestClient {
     @Autowired
     public BookingClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
         super(
